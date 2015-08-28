@@ -3,3 +3,6 @@
 name = "rps"
 version = "0.0.1"
 authors = [ "Busarov Alex" ]
+
+[dependencies]
+rand = "*"

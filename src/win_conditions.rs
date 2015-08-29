@@ -6,6 +6,7 @@ pub trait WinCondition<T: Unit> {
     fn winner(&self, field: &Field<T>) -> Option<Player>;
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct EliminateCondition;
 
 impl<T: Unit> WinCondition<T> for EliminateCondition {

@@ -33,7 +33,7 @@ use unit::{Unit, GeneralUnit};
 
 use std::marker::PhantomData;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Game<T: MoveCondition, E: WinCondition<GeneralUnit>> {
     turns: u32,
     current_turn: Player,
@@ -46,8 +46,8 @@ impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
     pub fn new(rules: Rules<GeneralUnit, T, E>) -> Game<T, E> {
         let mut rows = [[None; WIDTH]; HEIGHT];
         for i in 0..ROWS {
-            rows[i] = [Some(RED.random_unit()); HEIGHT];
-            rows[HEIGHT - i - 1] = [Some(BLUE.random_unit()); HEIGHT];
+            rows[i] = [Some(RED.random_unit()); WIDTH];
+            rows[HEIGHT - i - 1] = [Some(BLUE.random_unit()); WIDTH];
         }
         let field = Field { rows: rows };
         Game {
@@ -82,14 +82,14 @@ impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
         let attack_outcome;
         let (to_x, to_y);
         
-        if let Some(ref unit) = self.field.rows[from_x][from_y].as_ref() {
+        if let Some(ref unit) = self.field.rows[from_y][from_x].as_ref() {
             if unit.owner != self.current_turn { return Err(MoveError::WrongOwner); }
             let dist = movement.apply(unit.owner);
             to_x = dist.0;
             to_y = dist.1; 
             if to_x >= WIDTH || to_y >= HEIGHT { return Err(MoveError::PositionOutOfBounds); }
             
-            if let Some(ref defender) = self.field.rows[to_x][to_y].as_ref() {
+            if let Some(ref defender) = self.field.rows[to_y][to_x].as_ref() {
                 if defender.owner == self.current_turn { return Err(MoveError::SameOwner); }
                 
                 match unit.attack(defender) {
@@ -111,22 +111,22 @@ impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
         if let Some(outcome) = attack_outcome {
             match outcome {
                 WIN => {
-                    self.field.rows[to_x][to_y] = self.field.rows[from_x][from_y];
-                    self.field.rows[from_x][from_y] = None;
-                    self.field.rows[to_x][to_y].as_mut().unwrap().visible = true;
+                    self.field.rows[to_y][to_x] = self.field.rows[from_y][from_x];
+                    self.field.rows[from_y][from_x] = None;
+                    self.field.rows[to_y][to_x].as_mut().unwrap().visible = true;
                 },
                 LOSE => {
-                    self.field.rows[from_x][from_y] = None;
-                    self.field.rows[to_x][to_y].as_mut().unwrap().visible = true;
+                    self.field.rows[from_y][from_x] = None;
+                    self.field.rows[to_y][to_x].as_mut().unwrap().visible = true;
                 },
                 DRAW => {
-                    self.field.rows[from_x][from_y].as_mut().unwrap().visible = true;
-                    self.field.rows[to_x][to_y].as_mut().unwrap().visible = true;
+                    self.field.rows[from_y][from_x].as_mut().unwrap().visible = true;
+                    self.field.rows[to_y][to_x].as_mut().unwrap().visible = true;
                 }
             }
         } else {
-            self.field.rows[to_x][to_y] = self.field.rows[from_x][from_y];
-            self.field.rows[from_x][from_y] = None;
+            self.field.rows[to_y][to_x] = self.field.rows[from_y][from_x];
+            self.field.rows[from_y][from_x] = None;
         }
         
         self.winner = self.rules.win_condition.winner(&self.field);
@@ -137,6 +137,7 @@ impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MoveError {
     GameAlreadyFinished,
     DeclinedByMoveCondition,
@@ -204,7 +205,7 @@ pub enum Outcome {
     Draw,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Rules<K, T: MoveCondition, E: WinCondition<K>> where K: Unit {
     pub move_condition: T,
     pub win_condition: E,
@@ -219,4 +220,21 @@ impl<K: Unit, T: MoveCondition, E: WinCondition<K>> Rules<K, T, E> {
             phantom_data: PhantomData,
         }
     }
+}
+
+#[test]
+fn basic_test() {
+    use move_conditions::{OnlyForwardMove, Direction};
+    use win_conditions::EliminateCondition;
+    
+    let rules = Rules::new(OnlyForwardMove, EliminateCondition);
+    let mut game = Game::new(rules);
+    let move1 = Move::new(0, 0, Direction::Forward);
+    
+    assert_eq!(game.make_move(move1), Ok(None));
+    
+    assert_eq!(game.make_move(move1), Err(MoveError::NoUnitInPosition));
+    
+    let move2 = Move::new(0, 2, Direction::Forward);
+    assert!(game.make_move(move2).unwrap().is_some());
 }

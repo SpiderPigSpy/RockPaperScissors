@@ -44,6 +44,13 @@ pub struct Move {
 }
 
 impl Move {
+    pub fn new(x: usize, y: usize, direction: Direction) -> Move {
+        Move {
+            from: (x, y),
+            direction: direction,
+        }
+    }
+    
     pub fn apply(&self, player: Player) -> (usize, usize) {
         self.direction.apply(player, self.from)
     }
@@ -53,6 +60,7 @@ pub trait MoveCondition {
     fn is_valid (&self, movement: Move) -> bool;
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct OnlyForwardMove;
 
 impl MoveCondition for OnlyForwardMove {

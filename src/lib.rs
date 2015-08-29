@@ -17,30 +17,40 @@ const DRAW: Outcome = Outcome::Draw;
 
 pub mod move_conditions;
 pub mod win_conditions;
-mod field;
 pub mod pov_field;
+pub mod unit;
+pub mod field;
 
 use move_conditions::{MoveCondition, Move};
 use win_conditions::{WinCondition};
-pub use field::Field;
+use field::Field;
 use pov_field::{PovField};
+use unit::{Unit, GeneralUnit};
+
+use std::marker::PhantomData;
 
 #[derive(Clone)]
-pub struct Game<T: MoveCondition, E: WinCondition> {
+pub struct Game<T: MoveCondition<GeneralUnit>, E: WinCondition<GeneralUnit>> {
     turns: u32,
     current_turn: Player,
     winner: Option<Player>,
-    field: Field,
-    rules: Rules<T, E>,
+    field: Field<GeneralUnit>,
+    rules: Rules<GeneralUnit, T, E>,
 }
 
-impl<T: MoveCondition, E: WinCondition> Game<T, E> {
-    pub fn new(rules: Rules<T, E>) -> Game<T, E> {
+impl<T: MoveCondition<GeneralUnit>, E: WinCondition<GeneralUnit>> Game<T, E> {
+    pub fn new(rules: Rules<GeneralUnit, T, E>) -> Game<T, E> {
+        let mut rows = [[None; WIDTH]; HEIGHT];
+        for i in 0..ROWS {
+            rows[i] = [Some(RED.random_unit()); HEIGHT];
+            rows[HEIGHT - i - 1] = [Some(BLUE.random_unit()); HEIGHT];
+        }
+        let field = Field { rows: rows };
         Game {
             turns: 1,
             current_turn: RED,
             winner: None,
-            field: Field::new(),
+            field: field,
             rules: rules,
         }
     }
@@ -48,7 +58,7 @@ impl<T: MoveCondition, E: WinCondition> Game<T, E> {
     pub fn turns(&self) -> u32 { self.turns }
     pub fn current_turn(&self) -> Player { self.current_turn }
     pub fn winner(&self) -> Option<Player> { self.winner }
-    pub fn field(&self) -> &Field { &self.field }
+    pub fn field(&self) -> &Field<GeneralUnit> { &self.field }
     
     pub fn perspective(&self, player: Player) -> PovField {
         PovField::from((&self.field, player))
@@ -79,7 +89,7 @@ impl<T: MoveCondition, E: WinCondition> Game<T, E> {
             }
         };
         
-        if let Some(outcome) = attack_outcome {
+        if let Some(Some(outcome)) = attack_outcome {
             match outcome {
                 WIN => {
                     self.field.rows[to_x][to_y] = self.field.rows[from_x][from_y];
@@ -104,7 +114,7 @@ impl<T: MoveCondition, E: WinCondition> Game<T, E> {
         self.turns += 1;
         self.current_turn = self.current_turn.next();
         
-        Ok(attack_outcome)
+        Ok(attack_outcome.unwrap())
     }
 }
 
@@ -116,26 +126,6 @@ pub enum MoveError {
     SameOwner,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Unit {
-    rps: RPS,
-    owner: Player,
-    visible: bool,
-}
-
-impl Unit {
-    fn new(rps: RPS, owner: Player,) -> Unit {
-        Unit {
-            rps: rps,
-            owner: owner,
-            visible: false,
-        }
-    }
-    
-    fn attack(&self, opponent: &Unit) -> Outcome {
-        self.rps.attack(opponent.rps)
-    }
-}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Player {
@@ -151,11 +141,11 @@ impl Player {
         }
     }
     
-    fn unit(&self, fig: RPS) -> Unit {
-        Unit::new(fig, *self)
+    fn unit(&self, rps: RPS) -> GeneralUnit {
+        GeneralUnit::new(rps, *self)
     }
     
-    fn random_unit(&self) -> Unit {
+    fn random_unit(&self) -> GeneralUnit {
         self.unit(RPS::random())
     }
 }
@@ -194,7 +184,18 @@ pub enum Outcome {
 }
 
 #[derive(Clone)]
-pub struct Rules<T: MoveCondition, E: WinCondition> {
+pub struct Rules<K, T: MoveCondition<K>, E: WinCondition<K>> where K: Unit + Copy + Clone {
     pub move_condition: T,
     pub win_condition: E,
+    phantom_data: PhantomData<K>,
+}
+
+impl<K: Unit + Copy + Clone, T: MoveCondition<K>, E: WinCondition<K>> Rules<K, T, E> {
+    pub fn new(move_condition: T, win_condition: E) -> Rules<K, T, E> {
+        Rules {
+            move_condition: move_condition,
+            win_condition: win_condition,
+            phantom_data: PhantomData,
+        }
+    }
 }

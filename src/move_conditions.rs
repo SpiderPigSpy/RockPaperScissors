@@ -1,4 +1,6 @@
-use ::{Field, WIDTH, HEIGHT, RED, BLUE};
+use ::{WIDTH, HEIGHT, RED, BLUE};
+use field::Field;
+use unit::Unit;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Move {
@@ -29,14 +31,14 @@ impl Move {
     }
 }
 
-pub trait MoveCondition {
-    fn available (&self, field: &Field, movement: Move) -> bool;
+pub trait MoveCondition<T: Unit + Copy + Clone> {
+    fn available (&self, field: &Field<T>, movement: Move) -> bool;
 }
 
 pub struct OnlyForwardMove;
 
-impl MoveCondition for OnlyForwardMove {
-    fn available (&self, field: &Field, movement: Move) -> bool {
+impl<T: Unit + Copy + Clone> MoveCondition<T> for OnlyForwardMove {
+    fn available (&self, field: &Field<T>, movement: Move) -> bool {
         if movement.is_same_from_to()
            || !movement.is_vertical() 
            || !movement.is_one_cell_move() { return false; }
@@ -49,7 +51,7 @@ impl MoveCondition for OnlyForwardMove {
            
         if let Some(unit) = field.rows[from_x][from_y] {
             let up = movement.is_up();
-            match (unit.owner, up) {
+            match (unit.owner(), up) {
                 (RED, false) | (BLUE, true) => { return false; },
                 _ => {}
             }

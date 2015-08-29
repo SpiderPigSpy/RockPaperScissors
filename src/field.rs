@@ -1,17 +1,14 @@
-use ::{Unit, WIDTH, HEIGHT, ROWS, RED, BLUE};
+use ::{WIDTH, HEIGHT};
+use unit::{Unit};
 
 #[derive(Copy, Clone, Debug)]
-pub struct Field {
-    pub rows: [[Option<Unit>; WIDTH]; HEIGHT],
+pub struct Field<T: Unit + Copy + Clone> {
+    pub rows: [[Option<T>; WIDTH]; HEIGHT],
 }
 
-impl Field {
-    pub fn new() -> Field {
-        let mut rows = [[None; WIDTH]; HEIGHT];
-        for i in 0..ROWS {
-            rows[i] = [Some(RED.random_unit()); HEIGHT];
-            rows[HEIGHT - i - 1] = [Some(BLUE.random_unit()); HEIGHT];
-        }
+impl<T: Unit + Copy + Clone> Field<T> {
+    pub fn new() -> Field<T> {
+        let rows = [[None; WIDTH]; HEIGHT];
         Field {
             rows: rows,
         }

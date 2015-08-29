@@ -1,13 +1,15 @@
-use ::{Player, Field, RED, BLUE};
+use ::{Player, RED, BLUE};
+use field::Field;
+use unit::Unit;
 
-pub trait WinCondition {
-    fn winner(&self, field: &Field) -> Option<Player>;
+pub trait WinCondition<T: Unit + Copy + Clone> {
+    fn winner(&self, field: &Field<T>) -> Option<Player>;
 }
 
 pub struct EliminateCondition;
 
-impl WinCondition for EliminateCondition {
-    fn winner(&self, field: &Field) -> Option<Player> {
+impl<T: Unit + Copy + Clone> WinCondition<T> for EliminateCondition {
+    fn winner(&self, field: &Field<T>) -> Option<Player> {
         let mut red_preseted = false;
         let mut blue_presented = false;
         for &row in field.rows.iter() {
@@ -15,7 +17,7 @@ impl WinCondition for EliminateCondition {
             for &cell in row.iter() {
                 if red_preseted && blue_presented { break; }
                 if let Some(ref unit) = cell {
-                    match unit.owner {
+                    match unit.owner() {
                         RED => red_preseted = true,
                         BLUE => blue_presented = true,
                     }

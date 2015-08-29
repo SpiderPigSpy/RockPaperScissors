@@ -1,11 +1,14 @@
 extern crate rand;
 
 /// Width of game board
-pub const WIDTH: usize = 8;
+#[cfg(not(test))] pub const WIDTH: usize = 8;
+#[cfg(test)]      pub const WIDTH: usize = 3;
 /// Height of game board
-pub const HEIGHT: usize = 8;
+#[cfg(not(test))] pub const HEIGHT: usize = 8;
+#[cfg(test)]      pub const HEIGHT: usize = 3;
 /// Number of rows
-pub const ROWS: usize = 2;
+#[cfg(not(test))] pub const ROWS: usize = 2;
+#[cfg(test)]      pub const ROWS: usize = 1;
 
 const RED: Player = Player::Red;
 const BLUE: Player = Player::Blue;
@@ -31,7 +34,7 @@ use unit::{Unit, GeneralUnit};
 use std::marker::PhantomData;
 
 #[derive(Clone)]
-pub struct Game<T: MoveCondition<GeneralUnit>, E: WinCondition<GeneralUnit>> {
+pub struct Game<T: MoveCondition, E: WinCondition<GeneralUnit>> {
     turns: u32,
     current_turn: Player,
     winner: Option<Player>,
@@ -39,7 +42,7 @@ pub struct Game<T: MoveCondition<GeneralUnit>, E: WinCondition<GeneralUnit>> {
     rules: Rules<GeneralUnit, T, E>,
 }
 
-impl<T: MoveCondition<GeneralUnit>, E: WinCondition<GeneralUnit>> Game<T, E> {
+impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
     pub fn new(rules: Rules<GeneralUnit, T, E>) -> Game<T, E> {
         let mut rows = [[None; WIDTH]; HEIGHT];
         for i in 0..ROWS {
@@ -68,29 +71,44 @@ impl<T: MoveCondition<GeneralUnit>, E: WinCondition<GeneralUnit>> Game<T, E> {
     pub fn make_move(&mut self, movement: Move) -> Result<Option<Outcome>, MoveError> {
         if self.winner.is_some() { return Err(MoveError::GameAlreadyFinished); }
         
-        if !self.rules.move_condition.available(&self.field, movement) {
-            return Err(MoveError::InvalidMove);
+        if !self.rules.move_condition.is_valid(movement) {
+            return Err(MoveError::DeclinedByMoveCondition);
         }
         
         let (from_x, from_y) = movement.from;
-        let (to_x, to_y) = movement.to;
         
-        let attack_outcome = match (self.field.rows[from_x][from_y], self.field.rows[to_x][to_y]) {
-            (None, _) => {
-                return Err(MoveError::NonsenseMove);
-            },
-            (Some(unit), None) => {
-                if unit.owner != self.current_turn { return Err(MoveError::WrongOwner); }
-                None
-            },
-            (Some(attacker), Some(defender)) => {
-                if attacker.owner != self.current_turn { return Err(MoveError::WrongOwner); }
-                if attacker.owner == defender.owner { return Err(MoveError::SameOwner); }
-                Some( attacker.attack(&defender) )
+        if from_x >= WIDTH || from_y >= HEIGHT { return Err(MoveError::PositionOutOfBounds); }
+        
+        let attack_outcome;
+        let (to_x, to_y);
+        
+        if let Some(ref unit) = self.field.rows[from_x][from_y].as_ref() {
+            if unit.owner != self.current_turn { return Err(MoveError::WrongOwner); }
+            let dist = movement.apply(unit.owner);
+            to_x = dist.0;
+            to_y = dist.1; 
+            if to_x >= WIDTH || to_y >= HEIGHT { return Err(MoveError::PositionOutOfBounds); }
+            
+            if let Some(ref defender) = self.field.rows[to_x][to_y].as_ref() {
+                if defender.owner == self.current_turn { return Err(MoveError::SameOwner); }
+                
+                match unit.attack(defender) {
+                    Some(res) => {
+                        attack_outcome = Some(res);
+                    },
+                    None => { return Err(MoveError::UnexpextedError); }
+                } 
+            } else {
+                attack_outcome = None;
             }
-        };
+            
+            
+            
+        } else {
+            return Err(MoveError::NoUnitInPosition);
+        }
         
-        if let Some(Some(outcome)) = attack_outcome {
+        if let Some(outcome) = attack_outcome {
             match outcome {
                 WIN => {
                     self.field.rows[to_x][to_y] = self.field.rows[from_x][from_y];
@@ -115,16 +133,18 @@ impl<T: MoveCondition<GeneralUnit>, E: WinCondition<GeneralUnit>> Game<T, E> {
         self.turns += 1;
         self.current_turn = self.current_turn.next();
         
-        Ok(attack_outcome.unwrap())
+        Ok(attack_outcome)
     }
 }
 
 pub enum MoveError {
     GameAlreadyFinished,
-    InvalidMove,
-    NonsenseMove,
+    DeclinedByMoveCondition,
+    PositionOutOfBounds,
     WrongOwner,
+    NoUnitInPosition,
     SameOwner,
+    UnexpextedError,
 }
 
 
@@ -185,13 +205,13 @@ pub enum Outcome {
 }
 
 #[derive(Clone)]
-pub struct Rules<K, T: MoveCondition<K>, E: WinCondition<K>> where K: Unit {
+pub struct Rules<K, T: MoveCondition, E: WinCondition<K>> where K: Unit {
     pub move_condition: T,
     pub win_condition: E,
     phantom_data: PhantomData<K>,
 }
 
-impl<K: Unit, T: MoveCondition<K>, E: WinCondition<K>> Rules<K, T, E> {
+impl<K: Unit, T: MoveCondition, E: WinCondition<K>> Rules<K, T, E> {
     pub fn new(move_condition: T, win_condition: E) -> Rules<K, T, E> {
         Rules {
             move_condition: move_condition,

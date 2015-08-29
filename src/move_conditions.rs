@@ -1,66 +1,62 @@
-use ::{WIDTH, HEIGHT, RED, BLUE};
-use field::Field;
-use unit::Unit;
+use ::{Player, RED, BLUE};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Direction {
+    Forward,
+    Back,
+    Left,
+    Right,
+    ForwardLeft,
+    ForwardRight,
+    BackLeft,
+    BackRight,
+}
+
+impl Direction {
+    pub fn apply(&self, player: Player, from: (usize, usize)) -> (usize, usize) {
+        let (x, y) = from;
+        let (x, y) = (x as i32, y as i32);
+        
+        let (dx, dy) = match player {
+            RED => { (1, 1) },
+            BLUE => { (1, -1) },
+        };
+        
+        let (to_x, to_y) = match *self {
+            Direction::Forward => (x, y + dy),
+            Direction::Back => (x, y - dy),
+            Direction::Left => (x - dx, y),
+            Direction::Right => (x + dx, y),
+            Direction::ForwardLeft => (x - dx, y + dy),
+            Direction::ForwardRight => (x + dx, y + dy),
+            Direction::BackLeft => (x - dx, y - dy),
+            Direction::BackRight => (x + dx, y - dy),
+        };
+        
+        (to_x as usize, to_y as usize)
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Move {
     pub from: (usize, usize),
-    pub to: (usize, usize),
+    pub direction: Direction,
 }
 
 impl Move {
-    pub fn is_same_from_to(&self) -> bool {
-        self.from == self.to
-    }
-    
-    pub fn is_vertical(&self) -> bool {
-        self.from.0 == self.to.0
-    }
-    
-    pub fn is_horizontal(&self) -> bool {
-        self.from.1 == self.to.1
-    }
-    
-    pub fn is_one_cell_move(&self) -> bool {
-        (self.from.0 as i32 - self.to.0 as i32).abs() <= 1 &&
-        (self.from.1 as i32 - self.to.1 as i32).abs() <= 1
-    }
-    
-    pub fn is_up(&self) -> bool {
-        self.to.1 as i32 - self.from.1 as i32 > 0
+    pub fn apply(&self, player: Player) -> (usize, usize) {
+        self.direction.apply(player, self.from)
     }
 }
 
-pub trait MoveCondition<T: Unit> {
-    fn available (&self, field: &Field<T>, movement: Move) -> bool;
+pub trait MoveCondition {
+    fn is_valid (&self, movement: Move) -> bool;
 }
 
 pub struct OnlyForwardMove;
 
-impl<T: Unit> MoveCondition<T> for OnlyForwardMove {
-    fn available (&self, field: &Field<T>, movement: Move) -> bool {
-        if movement.is_same_from_to()
-           || !movement.is_vertical() 
-           || !movement.is_one_cell_move() { return false; }
-           
-        let (from_x, from_y) = movement.from;
-        let (to_x, to_y) = movement.to;
-        
-        if from_x >= WIDTH || to_x >= WIDTH
-           || from_y >= HEIGHT || to_y >= HEIGHT { return false; }
-           
-        if let Some(unit) = field.rows[from_x][from_y] {
-            let up = movement.is_up();
-            match (unit.owner(), up) {
-                (RED, false) | (BLUE, true) => { return false; },
-                _ => {}
-            }
-            
-            if (up && to_y == HEIGHT - 1) || (!up && to_y == 0) { return false; }
-        
-        } else {
-            return false;
-        }
-        true
+impl MoveCondition for OnlyForwardMove {
+    fn is_valid (&self, movement: Move) -> bool {
+        movement.direction == Direction::Forward
     }
 }

@@ -2,13 +2,13 @@ use ::{Player, RED, BLUE};
 use field::Field;
 use unit::Unit;
 
-pub trait WinCondition<T: Unit + Copy + Clone> {
+pub trait WinCondition<T: Unit> {
     fn winner(&self, field: &Field<T>) -> Option<Player>;
 }
 
 pub struct EliminateCondition;
 
-impl<T: Unit + Copy + Clone> WinCondition<T> for EliminateCondition {
+impl<T: Unit> WinCondition<T> for EliminateCondition {
     fn winner(&self, field: &Field<T>) -> Option<Player> {
         let mut red_preseted = false;
         let mut blue_presented = false;

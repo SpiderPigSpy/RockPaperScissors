@@ -184,13 +184,13 @@ pub enum Outcome {
 }
 
 #[derive(Clone)]
-pub struct Rules<K, T: MoveCondition<K>, E: WinCondition<K>> where K: Unit + Copy + Clone {
+pub struct Rules<K, T: MoveCondition<K>, E: WinCondition<K>> where K: Unit {
     pub move_condition: T,
     pub win_condition: E,
     phantom_data: PhantomData<K>,
 }
 
-impl<K: Unit + Copy + Clone, T: MoveCondition<K>, E: WinCondition<K>> Rules<K, T, E> {
+impl<K: Unit, T: MoveCondition<K>, E: WinCondition<K>> Rules<K, T, E> {
     pub fn new(move_condition: T, win_condition: E) -> Rules<K, T, E> {
         Rules {
             move_condition: move_condition,

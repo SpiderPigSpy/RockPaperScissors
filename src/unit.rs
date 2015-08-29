@@ -1,6 +1,6 @@
 use ::{Player, RPS, Outcome};
 
-pub trait Unit {
+pub trait Unit: Copy + Clone {
     fn owner(&self) -> Player;
     fn rps(&self) -> Option<RPS>;
     fn attack(&self, opponent: &Self) -> Option<Outcome> {

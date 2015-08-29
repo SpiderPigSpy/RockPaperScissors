@@ -31,13 +31,13 @@ impl Move {
     }
 }
 
-pub trait MoveCondition<T: Unit + Copy + Clone> {
+pub trait MoveCondition<T: Unit> {
     fn available (&self, field: &Field<T>, movement: Move) -> bool;
 }
 
 pub struct OnlyForwardMove;
 
-impl<T: Unit + Copy + Clone> MoveCondition<T> for OnlyForwardMove {
+impl<T: Unit> MoveCondition<T> for OnlyForwardMove {
     fn available (&self, field: &Field<T>, movement: Move) -> bool {
         if movement.is_same_from_to()
            || !movement.is_vertical() 

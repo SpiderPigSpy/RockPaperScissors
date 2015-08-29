@@ -18,10 +18,12 @@ const DRAW: Outcome = Outcome::Draw;
 pub mod move_conditions;
 pub mod win_conditions;
 mod field;
+pub mod pov_field;
 
 use move_conditions::{MoveCondition, Move};
 use win_conditions::{WinCondition};
 pub use field::Field;
+use pov_field::{PovField};
 
 #[derive(Clone)]
 pub struct Game<T: MoveCondition, E: WinCondition> {
@@ -47,6 +49,10 @@ impl<T: MoveCondition, E: WinCondition> Game<T, E> {
     pub fn current_turn(&self) -> Player { self.current_turn }
     pub fn winner(&self) -> Option<Player> { self.winner }
     pub fn field(&self) -> &Field { &self.field }
+    
+    pub fn perspective(&self, player: Player) -> PovField {
+        PovField::from((&self.field, player))
+    }
     
     pub fn make_move(&mut self, movement: Move) -> Result<Option<Outcome>, MoveError> {
         if self.winner.is_some() { return Err(MoveError::GameAlreadyFinished); }
@@ -112,22 +118,22 @@ pub enum MoveError {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Unit {
-    fig: RPS,
+    rps: RPS,
     owner: Player,
     visible: bool,
 }
 
 impl Unit {
-    fn new(fig: RPS, owner: Player,) -> Unit {
+    fn new(rps: RPS, owner: Player,) -> Unit {
         Unit {
-            fig: fig,
+            rps: rps,
             owner: owner,
             visible: false,
         }
     }
     
     fn attack(&self, opponent: &Unit) -> Outcome {
-        self.fig.attack(opponent.fig)
+        self.rps.attack(opponent.rps)
     }
 }
 

@@ -1,7 +1,10 @@
 extern crate rand;
 
+/// Width of game board
 pub const WIDTH: usize = 8;
+/// Height of game board
 pub const HEIGHT: usize = 8;
+/// Number of rows
 pub const ROWS: usize = 2;
 
 const RED: Player = Player::Red;
@@ -17,14 +20,12 @@ const DRAW: Outcome = Outcome::Draw;
 
 pub mod move_conditions;
 pub mod win_conditions;
-pub mod pov_field;
 pub mod unit;
 pub mod field;
 
 use move_conditions::{MoveCondition, Move};
 use win_conditions::{WinCondition};
-use field::Field;
-use pov_field::{PovField};
+use field::{Field, PovField};
 use unit::{Unit, GeneralUnit};
 
 use std::marker::PhantomData;

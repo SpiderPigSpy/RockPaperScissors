@@ -1,6 +1,6 @@
 use ::{Player, RED, BLUE};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub enum Direction {
     Forward,
     Back,
@@ -37,7 +37,7 @@ impl Direction {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub struct Move {
     pub from: (usize, usize),
     pub direction: Direction,

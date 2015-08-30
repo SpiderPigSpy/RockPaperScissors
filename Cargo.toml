@@ -6,3 +6,4 @@ authors = [ "Busarov Alex" ]
 
 [dependencies]
 rand = "*"
+rustc-serialize = "0.3.16"

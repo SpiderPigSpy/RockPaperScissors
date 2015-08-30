@@ -3,7 +3,7 @@ use std::convert::From;
 use ::{Player, WIDTH, HEIGHT};
 use unit::{Unit, PovUnit, GeneralUnit};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, RustcEncodable, RustcDecodable)]
 pub struct Field<T: Unit> {
     pub rows: [[Option<T>; WIDTH]; HEIGHT],
 }
@@ -17,6 +17,7 @@ impl<T: Unit> Field<T> {
     }
 }
 
+#[derive(Copy, Clone, Debug, RustcEncodable, RustcDecodable)]
 pub struct PovField {
     pub pov: Player,
     pub rows: [[Option<PovUnit>; WIDTH]; HEIGHT],

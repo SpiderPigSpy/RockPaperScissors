@@ -35,7 +35,7 @@ impl Unit for GeneralUnit {
 }
 
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub struct PovUnit {
     pub owner: Player,
     pub part: Part,
@@ -72,19 +72,19 @@ impl From<(GeneralUnit , Player)> for PovUnit {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub enum Part {
     Ally(AllyUnit),
     Enemy(EnemyUnit),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub struct AllyUnit {
     rps: RPS,
     visible: bool,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub struct EnemyUnit {
     rps: Option<RPS>,
 }

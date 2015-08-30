@@ -1,4 +1,5 @@
 extern crate rand;
+extern crate rustc_serialize;
 
 /// Width of game board
 #[cfg(not(test))] pub const WIDTH: usize = 8;
@@ -149,7 +150,7 @@ pub enum MoveError {
 }
 
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub enum Player {
     Red,
     Blue,
@@ -172,7 +173,7 @@ impl Player {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub enum RPS {
     Rock,
     Paper,

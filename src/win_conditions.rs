@@ -1,4 +1,4 @@
-use ::{Player, RED, BLUE};
+use ::{Player, RED, BLUE, HEIGHT};
 use field::Field;
 use unit::Unit;
 
@@ -29,6 +29,31 @@ impl<T: Unit> WinCondition<T> for EliminateCondition {
             (true, false) => { Some(RED) },
             (false, true) => { Some(BLUE) },
             _ => None,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct GetToLastRowCondition;
+
+impl<T: Unit> WinCondition<T> for GetToLastRowCondition {
+    fn winner(&self, field: &Field<T>) -> Option<Player> {
+        
+        fn unit_check<T: Unit>(cell: &Option<T>, player: Player) -> bool {
+            if let Some(ref u) = cell.as_ref() {
+                u.owner() == player
+            } else {
+                false
+            }
+        };    
+    
+        let blue_at_first = field.rows[0].iter().any(|&x| unit_check(&x, BLUE) );
+        let red_at_last = field.rows[HEIGHT - 1].iter().any(|&x| unit_check(&x, RED) );
+        
+        match (red_at_last, blue_at_first) {
+            (true, false) => Some(RED),
+            (false, true) => Some(BLUE),
+            _ => None
         }
     }
 }

@@ -36,7 +36,7 @@ impl<T: Unit> Field<T> {
 #[derive(Copy, Clone, Debug, RustcEncodable, RustcDecodable)]
 pub struct PovField {
     pub pov: Player,
-    pub rows: [[Option<PovUnit>; WIDTH]; HEIGHT],
+    pub field: Field<PovUnit>,
 }
 
 impl<'a> From<(&'a Field<GeneralUnit>, Player)> for PovField {
@@ -54,7 +54,7 @@ impl<'a> From<(&'a Field<GeneralUnit>, Player)> for PovField {
         
         PovField {
             pov: player,
-            rows: rows,
+            field: Field{ rows: rows },
         }
     }
 }

@@ -107,8 +107,6 @@ impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
                 attack_outcome = None;
             }
             
-            
-            
         } else {
             return Err(MoveError::NoUnitInPosition);
         }

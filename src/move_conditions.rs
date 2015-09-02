@@ -1,5 +1,16 @@
 use ::{Player, RED, BLUE};
 
+pub static ALL_DIRECTIONS: &'static [Direction; 8] = &[
+            Direction::Forward,
+            Direction::Back,
+            Direction::Left,
+            Direction::Right,
+            Direction::ForwardLeft,
+            Direction::ForwardRight,
+            Direction::BackLeft,
+            Direction::BackRight,
+        ];
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub enum Direction {
     Forward,
@@ -13,6 +24,7 @@ pub enum Direction {
 }
 
 impl Direction {
+    
     pub fn apply(&self, player: Player, from: (usize, usize)) -> (usize, usize) {
         let (x, y) = from;
         let (x, y) = (x as i32, y as i32);

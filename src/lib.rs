@@ -65,6 +65,10 @@ impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
     pub fn winner(&self) -> Option<Player> { self.winner }
     pub fn field(&self) -> &Field<GeneralUnit> { &self.field }
     
+    pub fn force_win(&mut self, player: Player) {
+        if !self.winner.is_some() { self.winner = Some(player); }
+    }
+    
     pub fn perspective(&self, player: Player) -> PovField {
         PovField::from((&self.field, player))
     }

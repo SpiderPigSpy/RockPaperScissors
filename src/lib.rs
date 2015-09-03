@@ -123,8 +123,16 @@ impl<T: WinCondition<GeneralUnit>> Game<T> {
                     self.field.rows[to_y][to_x].as_mut().unwrap().visible = true;
                 },
                 DRAW => {
-                    self.field.rows[from_y][from_x].as_mut().unwrap().visible = true;
-                    self.field.rows[to_y][to_x].as_mut().unwrap().visible = true;
+                    let v1 = self.field.rows[from_y][from_x].as_mut().unwrap().visible;
+                    let v2 = self.field.rows[to_y][to_x].as_mut().unwrap().visible;
+                    
+                    if v1 && v2{
+                        self.field.rows[from_y][from_x].as_mut().unwrap().rps = RPS::random();
+                        self.field.rows[to_y][to_x].as_mut().unwrap().rps = RPS::random();
+                    } else {
+                        self.field.rows[from_y][from_x].as_mut().unwrap().visible = true;
+                        self.field.rows[to_y][to_x].as_mut().unwrap().visible = true;
+                    }
                 }
             }
         } else {

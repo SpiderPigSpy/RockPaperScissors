@@ -2,7 +2,7 @@ use std::convert::From;
 
 use ::{Player, WIDTH, HEIGHT};
 use unit::{Unit, PovUnit, GeneralUnit};
-use move_conditions::{ALL_DIRECTIONS, Move, MoveCondition};
+use move_conditions::{ALL_DIRECTIONS, Move, MoveCondition, OnlyForwardMove};
 
 #[derive(Copy, Clone, Debug, RustcEncodable, RustcDecodable)]
 pub struct Field<T: Unit> {
@@ -37,6 +37,12 @@ impl<T: Unit> Field<T> {
 pub struct PovField {
     pub pov: Player,
     pub field: Field<PovUnit>,
+}
+
+impl PovField {
+    pub fn possible_moves(&self) -> Vec<Move> {
+        self.field.possible_moves(self.pov, &OnlyForwardMove)
+    }
 }
 
 impl<'a> From<(&'a Field<GeneralUnit>, Player)> for PovField {

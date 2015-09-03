@@ -58,3 +58,18 @@ impl<'a> From<(&'a Field<GeneralUnit>, Player)> for PovField {
         }
     }
 }
+
+#[test]
+fn possible_moves_test() {
+    use move_conditions::{Direction, OnlyForwardMove};
+    use ::RPS;
+    
+    let mut field = Field::new();
+    let move_condition = OnlyForwardMove;
+    field.rows[0][0] = Some(GeneralUnit { rps: RPS::Rock, owner: Player::Blue, visible: false,});
+    field.rows[0][1] = Some(GeneralUnit { rps: RPS::Rock, owner: Player::Red, visible: false,});
+    field.rows[1][0] = Some(GeneralUnit { rps: RPS::Rock, owner: Player::Red, visible: false,});
+    let moves = vec![Move {from: (1, 0), direction: Direction::Forward},
+                     Move {from: (0, 1), direction: Direction::Forward}];
+    assert_eq!(field.possible_moves(Player::Red, &move_condition), moves);
+}

@@ -22,12 +22,12 @@ const WIN: Outcome = Outcome::Win;
 const LOSE: Outcome = Outcome::Lose;
 const DRAW: Outcome = Outcome::Draw;
 
-pub mod move_conditions;
+pub mod moves;
 pub mod win_conditions;
 pub mod unit;
 pub mod field;
 
-use move_conditions::{MoveCondition, Move};
+use moves::{is_valid, Move};
 use win_conditions::{WinCondition};
 use field::{Field, PovField};
 use unit::{Unit, GeneralUnit};
@@ -35,16 +35,16 @@ use unit::{Unit, GeneralUnit};
 use std::marker::PhantomData;
 
 #[derive(Clone, Debug)]
-pub struct Game<T: MoveCondition, E: WinCondition<GeneralUnit>> {
+pub struct Game<T: WinCondition<GeneralUnit>> {
     turns: u32,
     current_turn: Player,
     winner: Option<Player>,
     field: Field<GeneralUnit>,
-    rules: Rules<GeneralUnit, T, E>,
+    rules: Rules<GeneralUnit, T>,
 }
 
-impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
-    pub fn new(rules: Rules<GeneralUnit, T, E>) -> Game<T, E> {
+impl<T: WinCondition<GeneralUnit>> Game<T> {
+    pub fn new(rules: Rules<GeneralUnit, T>) -> Game<T> {
         let mut rows = [[None; WIDTH]; HEIGHT];
         for i in 0..ROWS {
             rows[i] = [Some(RED.random_unit()); WIDTH];
@@ -76,7 +76,7 @@ impl<T: MoveCondition, E: WinCondition<GeneralUnit>> Game<T, E> {
     pub fn make_move(&mut self, movement: Move) -> Result<Option<Outcome>, MoveError> {
         if self.winner.is_some() { return Err(MoveError::GameAlreadyFinished); }
         
-        if !self.rules.move_condition.is_valid(movement) {
+        if !is_valid(movement) {
             return Err(MoveError::DeclinedByMoveCondition);
         }
         
@@ -209,16 +209,14 @@ pub enum Outcome {
 }
 
 #[derive(Clone, Debug)]
-pub struct Rules<K, T: MoveCondition, E: WinCondition<K>> where K: Unit {
-    pub move_condition: T,
-    pub win_condition: E,
+pub struct Rules<K, T: WinCondition<K>> where K: Unit {
+    pub win_condition: T,
     phantom_data: PhantomData<K>,
 }
 
-impl<K: Unit, T: MoveCondition, E: WinCondition<K>> Rules<K, T, E> {
-    pub fn new(move_condition: T, win_condition: E) -> Rules<K, T, E> {
+impl<K: Unit, T: WinCondition<K>> Rules<K, T> {
+    pub fn new(win_condition: T) -> Rules<K, T> {
         Rules {
-            move_condition: move_condition,
             win_condition: win_condition,
             phantom_data: PhantomData,
         }
@@ -227,10 +225,10 @@ impl<K: Unit, T: MoveCondition, E: WinCondition<K>> Rules<K, T, E> {
 
 #[test]
 fn basic_test() {
-    use move_conditions::{OnlyForwardMove, Direction};
+    use moves::{Direction};
     use win_conditions::EliminateCondition;
     
-    let rules = Rules::new(OnlyForwardMove, EliminateCondition);
+    let rules = Rules::new(EliminateCondition);
     let mut game = Game::new(rules);
     let move1 = Move::new(0, 0, Direction::Forward);
     

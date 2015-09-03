@@ -68,15 +68,8 @@ impl Move {
     }
 }
 
-pub trait MoveCondition {
-    fn is_valid (&self, movement: Move) -> bool;
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct OnlyForwardMove;
-
-impl MoveCondition for OnlyForwardMove {
-    fn is_valid (&self, movement: Move) -> bool {
-        movement.direction == Direction::Forward
-    }
+pub fn is_valid (movement: Move) -> bool {
+    movement.direction == Direction::Forward ||
+    movement.direction == Direction::ForwardLeft ||
+    movement.direction == Direction::ForwardRight
 }

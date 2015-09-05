@@ -80,11 +80,11 @@ pub enum Part {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub struct AllyUnit {
-    rps: RPS,
-    visible: bool,
+    pub rps: RPS,
+    pub visible: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, RustcEncodable, RustcDecodable)]
 pub struct EnemyUnit {
-    rps: Option<RPS>,
+    pub rps: Option<RPS>,
 }

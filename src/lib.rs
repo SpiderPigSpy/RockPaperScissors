@@ -22,6 +22,8 @@ const WIN: Outcome = Outcome::Win;
 const LOSE: Outcome = Outcome::Lose;
 const DRAW: Outcome = Outcome::Draw;
 
+use rand::{Rng, Rand};
+
 use std::marker::PhantomData;
 
 use moves::{is_valid, Move};
@@ -205,6 +207,17 @@ impl RPS {
             1 => PAPER,
             2 => SCISSORS,
             _ => { panic!("rand::random::<usize>() % 3 returned not 0, nor 1, nor 2"); }
+        }
+    }
+}
+
+impl Rand for RPS {
+    fn rand<R: Rng>(rng: &mut R) -> Self {
+        match rng.next_u32() % 3 {
+            0 => ROCK,
+            1 => PAPER,
+            2 => SCISSORS,
+            _ => { unreachable!(); }
         }
     }
 }

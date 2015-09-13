@@ -22,17 +22,17 @@ const WIN: Outcome = Outcome::Win;
 const LOSE: Outcome = Outcome::Lose;
 const DRAW: Outcome = Outcome::Draw;
 
-pub mod moves;
-pub mod win_conditions;
-pub mod unit;
-pub mod field;
+use std::marker::PhantomData;
 
 use moves::{is_valid, Move};
 use win_conditions::{WinCondition};
 use field::{Field, PovField};
 use unit::{Unit, GeneralUnit};
 
-use std::marker::PhantomData;
+pub mod moves;
+pub mod win_conditions;
+pub mod unit;
+pub mod field;
 
 #[derive(Clone, Debug)]
 pub struct Game<T: WinCondition<GeneralUnit>> {

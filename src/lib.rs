@@ -129,8 +129,8 @@ impl<T: WinCondition<GeneralUnit>> Game<T> {
                     let v2 = self.field.rows[to_y][to_x].as_mut().unwrap().visible;
                     
                     if v1 && v2{
-                        self.field.rows[from_y][from_x].as_mut().unwrap().rps = RPS::random();
-                        self.field.rows[to_y][to_x].as_mut().unwrap().rps = RPS::random();
+                        self.field.rows[from_y][from_x].as_mut().unwrap().rps = rand::random();
+                        self.field.rows[to_y][to_x].as_mut().unwrap().rps = rand::random();
                     } else {
                         self.field.rows[from_y][from_x].as_mut().unwrap().visible = true;
                         self.field.rows[to_y][to_x].as_mut().unwrap().visible = true;
@@ -181,7 +181,7 @@ impl Player {
     }
     
     fn random_unit(&self) -> GeneralUnit {
-        self.unit(RPS::random())
+        self.unit(rand::random())
     }
 }
 
@@ -198,15 +198,6 @@ impl RPS {
             (PAPER, ROCK) | (ROCK, SCISSORS) | (SCISSORS, PAPER) => WIN,
             (ROCK, PAPER) | (SCISSORS, ROCK) | (PAPER, SCISSORS) => LOSE,
             _ => DRAW,
-        }
-    }
-    
-    fn random() -> RPS {
-        match rand::random::<usize>() % 3 {
-            0 => ROCK,
-            1 => PAPER,
-            2 => SCISSORS,
-            _ => { panic!("rand::random::<usize>() % 3 returned not 0, nor 1, nor 2"); }
         }
     }
 }

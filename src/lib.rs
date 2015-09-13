@@ -49,8 +49,8 @@ impl<T: WinCondition<GeneralUnit>> Game<T> {
     pub fn new(rules: Rules<GeneralUnit, T>) -> Game<T> {
         let mut rows = [[None; WIDTH]; HEIGHT];
         for i in 0..ROWS {
-            rows[i] = [Some(RED.random_unit()); WIDTH];
-            rows[HEIGHT - i - 1] = [Some(BLUE.random_unit()); WIDTH];
+            rows[i] = Self::random_row(RED);
+            rows[HEIGHT - i - 1] = Self::random_row(BLUE);
         }
         let field = Field { rows: rows };
         Game {
@@ -60,6 +60,14 @@ impl<T: WinCondition<GeneralUnit>> Game<T> {
             field: field,
             rules: rules,
         }
+    }
+    
+    fn random_row(player: Player) -> [Option<GeneralUnit>; WIDTH] {
+        let mut res = [None; WIDTH];
+        for i in 0..WIDTH {
+            res[i] = Some(player.random_unit());
+        }
+        res
     }
     
     pub fn turns(&self) -> u32 { self.turns }
